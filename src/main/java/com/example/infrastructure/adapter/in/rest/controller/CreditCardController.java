@@ -1,15 +1,19 @@
 package com.example.infrastructure.adapter.in.rest.controller;
 
+import com.example.application.port.in.CreateCreditCardCommand;
+import com.example.application.port.in.CreateCreditCardUseCase;
 import com.example.application.port.in.GetCreditCardUseCase;
 import com.example.domain.model.CreditCard;
+import com.example.infrastructure.adapter.in.rest.dto.CreditCardCreateRequest;
 import com.example.infrastructure.adapter.in.rest.dto.CreditCardResponseDTO;
 import com.example.infrastructure.adapter.in.rest.mapper.CreditCardRestMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/creditcards")
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CreditCardController {
 
     private final GetCreditCardUseCase getCreditCardUseCase;
+    private final CreateCreditCardUseCase createCreditCardUseCase;
     private final CreditCardRestMapper creditCardRestMapper;
 
     @GetMapping("/{id}")
@@ -24,5 +29,16 @@ public class CreditCardController {
         CreditCard creditCard = getCreditCardUseCase.getCreditCard(id);
         CreditCardResponseDTO responseDTO = creditCardRestMapper.toResponseDTO(creditCard);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @PostMapping
+    public ResponseEntity<CreditCardResponseDTO> createCreditCard(
+            @Valid @RequestBody CreditCardCreateRequest request,
+            UriComponentsBuilder uriBuilder) {
+        CreateCreditCardCommand command = creditCardRestMapper.toCommand(request);
+        CreditCard created = createCreditCardUseCase.createCreditCard(command);
+        CreditCardResponseDTO response = creditCardRestMapper.toResponseDTO(created);
+        URI location = uriBuilder.path("/api/v1/creditcards/{id}").buildAndExpand(created.getId()).toUri();
+        return ResponseEntity.created(location).body(response);
     }
 }
