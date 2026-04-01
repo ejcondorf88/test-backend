@@ -7,4 +7,8 @@ import java.util.Optional;
 public interface CreditCardRepository {
 
     Optional<CreditCard> findById(Long id);
+
+    CreditCard save(CreditCard creditCard);
+
+    boolean existsByCardNumber(String cardNumber);
 }
