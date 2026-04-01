@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: creditcard-service
+  datasource:
+    url: jdbc:postgresql://switchback.proxy.rlwy.net:16602/railway
+    username: postgres
+    password: tBEcFMqrsXUQjPqrzkkCjVRMPyOBVsWo
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+server:
+  port: 9000
