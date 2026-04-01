@@ -1,11 +1,16 @@
 server:
-  port: 8081
+  port: 9093
 
 spring:
   application:
     name: operations-service
+  datasource:
+    url: jdbc:postgresql://switchback.proxy.rlwy.net:16602/railway
+    username: postgres
+    password: tBEcFMqrsXUQjPqrzkkCjVRMPyOBVsWo
+    driver-class-name: org.postgresql.Driver
 
 external:
   services:
     credit-card:
-      url: http://localhost:8080
+      url: http://127.0.0.1:9000
