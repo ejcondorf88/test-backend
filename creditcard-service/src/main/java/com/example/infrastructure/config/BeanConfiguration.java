@@ -10,11 +10,22 @@ import com.example.application.service.CreateCreditCardService;
 import com.example.application.service.GetCreditCardService;
 import com.example.application.service.UpdateBalanceService;
 import com.example.application.service.UpdateCreditCardStatusService;
+import com.example.infrastructure.adapter.out.persistence.CreditCardPersistenceAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BeanConfiguration {
+
+    @Bean
+    public LoadCreditCardPort loadCreditCardPort(CreditCardPersistenceAdapter adapter) {
+        return adapter;
+    }
+
+    @Bean
+    public SaveCreditCardPort saveCreditCardPort(CreditCardPersistenceAdapter adapter) {
+        return adapter;
+    }
 
     @Bean
     public GetCreditCardUseCase getCreditCardUseCase(LoadCreditCardPort loadCreditCardPort) {

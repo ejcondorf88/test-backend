@@ -7,6 +7,8 @@ import com.example.domain.model.CreditCard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class GetCreditCardService implements GetCreditCardUseCase {
@@ -20,5 +22,10 @@ public class GetCreditCardService implements GetCreditCardUseCase {
             throw new CreditCardNotFoundException(id);
         }
         return creditCard;
+    }
+
+    @Override
+    public List<CreditCard> getAllCreditCards() {
+        return loadCreditCardPort.loadAll();
     }
 }

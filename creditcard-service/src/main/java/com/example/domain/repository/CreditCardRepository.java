@@ -8,6 +8,8 @@ public interface CreditCardRepository {
 
     Optional<CreditCard> findById(Long id);
 
+    Optional<CreditCard> findByCardNumber(String cardNumber);
+
     CreditCard save(CreditCard creditCard);
 
     boolean existsByCardNumber(String cardNumber);

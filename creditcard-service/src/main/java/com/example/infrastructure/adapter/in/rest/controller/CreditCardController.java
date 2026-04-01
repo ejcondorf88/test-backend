@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/creditcards")
@@ -28,6 +29,15 @@ public class CreditCardController {
     private final UpdateCreditCardStatusUseCase updateCreditCardStatusUseCase;
     private final UpdateBalanceUseCase updateBalanceUseCase;
     private final CreditCardRestMapper creditCardRestMapper;
+
+    @GetMapping
+    public ResponseEntity<List<CreditCardResponseDTO>> getAllCreditCards() {
+        List<CreditCard> creditCards = getCreditCardUseCase.getAllCreditCards();
+        List<CreditCardResponseDTO> response = creditCards.stream()
+                .map(creditCardRestMapper::toResponseDTO)
+                .toList();
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<CreditCardResponseDTO> getCreditCard(@PathVariable Long id) {
