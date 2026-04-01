@@ -1,6 +1,5 @@
 package com.example.infrastructure.adapter.in.rest.controller;
 
-import com.example.application.port.in.CreateCreditCardCommand;
 import com.example.application.port.in.CreateCreditCardUseCase;
 import com.example.application.port.in.GetCreditCardUseCase;
 import com.example.domain.model.CreditCard;
@@ -35,8 +34,13 @@ public class CreditCardController {
     public ResponseEntity<CreditCardResponseDTO> createCreditCard(
             @Valid @RequestBody CreditCardCreateRequest request,
             UriComponentsBuilder uriBuilder) {
-        CreateCreditCardCommand command = creditCardRestMapper.toCommand(request);
-        CreditCard created = createCreditCardUseCase.createCreditCard(command);
+        CreditCard created = createCreditCardUseCase.createCreditCard(
+            request.cardNumber(),
+            request.holderName(),
+            request.creditLimit(),
+            request.availableBalance(),
+            request.status()
+        );
         CreditCardResponseDTO response = creditCardRestMapper.toResponseDTO(created);
         URI location = uriBuilder.path("/api/v1/creditcards/{id}").buildAndExpand(created.getId()).toUri();
         return ResponseEntity.created(location).body(response);
