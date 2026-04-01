@@ -1,6 +1,7 @@
 package com.example.infrastructure.exception;
 
 import com.example.domain.exception.CreditCardAlreadyExistsException;
+import com.example.domain.exception.CreditCardBlockedException;
 import com.example.domain.exception.CreditCardNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

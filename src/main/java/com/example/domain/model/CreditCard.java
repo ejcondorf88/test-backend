@@ -29,4 +29,13 @@ public class CreditCard {
         }
         return "****" + cardNumber.substring(cardNumber.length() - 4);
     }
+
+    public void updateStatus(CreditCardStatus newStatus) {
+        this.status = newStatus;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isBlocked() {
+        return this.status == CreditCardStatus.BLOQUEADA;
+    }
 }

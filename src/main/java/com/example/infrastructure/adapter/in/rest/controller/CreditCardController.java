@@ -2,9 +2,11 @@ package com.example.infrastructure.adapter.in.rest.controller;
 
 import com.example.application.port.in.CreateCreditCardUseCase;
 import com.example.application.port.in.GetCreditCardUseCase;
+import com.example.application.port.in.UpdateCreditCardStatusUseCase;
 import com.example.domain.model.CreditCard;
 import com.example.infrastructure.adapter.in.rest.dto.CreditCardCreateRequest;
 import com.example.infrastructure.adapter.in.rest.dto.CreditCardResponseDTO;
+import com.example.infrastructure.adapter.in.rest.dto.UpdateCreditCardStatusRequest;
 import com.example.infrastructure.adapter.in.rest.mapper.CreditCardRestMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class CreditCardController {
 
     private final GetCreditCardUseCase getCreditCardUseCase;
     private final CreateCreditCardUseCase createCreditCardUseCase;
+    private final UpdateCreditCardStatusUseCase updateCreditCardStatusUseCase;
     private final CreditCardRestMapper creditCardRestMapper;
 
     @GetMapping("/{id}")
@@ -35,14 +38,22 @@ public class CreditCardController {
             @Valid @RequestBody CreditCardCreateRequest request,
             UriComponentsBuilder uriBuilder) {
         CreditCard created = createCreditCardUseCase.createCreditCard(
-            request.cardNumber(),
-            request.holderName(),
-            request.creditLimit(),
-            request.availableBalance(),
-            request.status()
+                request.cardNumber(),
+                request.holderName(),
+                request.creditLimit(),
+                request.availableBalance(),
+                request.status()
         );
         CreditCardResponseDTO response = creditCardRestMapper.toResponseDTO(created);
         URI location = uriBuilder.path("/api/v1/creditcards/{id}").buildAndExpand(created.getId()).toUri();
         return ResponseEntity.created(location).body(response);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<CreditCardResponseDTO> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateCreditCardStatusRequest request) {
+        CreditCard updated = updateCreditCardStatusUseCase.updateStatus(id, request.status());
+        return ResponseEntity.ok(creditCardRestMapper.toResponseDTO(updated));
     }
 }
