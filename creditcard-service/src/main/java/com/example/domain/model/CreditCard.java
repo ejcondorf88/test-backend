@@ -38,4 +38,42 @@ public class CreditCard {
     public boolean isBlocked() {
         return this.status == CreditCardStatus.BLOQUEADA;
     }
+
+    /**
+     * Actualiza el saldo de la tarjeta según el tipo de operación.
+     * 
+     * @param amount   Monto a operar
+     * @param operation Tipo de operación (CONSUMO o PAGO)
+     * @throws IllegalStateException si la tarjeta está bloqueada
+     * @throws IllegalArgumentException si el monto es negativo o cero
+     * @throws IllegalStateException si no hay saldo suficiente para CONSUMO
+     * @throws IllegalStateException si el PAGO excede el límite de crédito
+     */
+    public void updateBalance(BigDecimal amount, OperationType operation) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto debe ser mayor a cero");
+        }
+
+        if (this.isBlocked()) {
+            throw new IllegalStateException("No se puede operar una tarjeta bloqueada");
+        }
+
+        switch (operation) {
+            case CONSUMO -> {
+                if (this.availableBalance.compareTo(amount) < 0) {
+                    throw new IllegalStateException("Saldo insuficiente. Disponible: " + this.availableBalance);
+                }
+                this.availableBalance = this.availableBalance.subtract(amount);
+            }
+            case PAGO -> {
+                BigDecimal newBalance = this.availableBalance.add(amount);
+                if (newBalance.compareTo(this.creditLimit) > 0) {
+                    throw new IllegalStateException("El pago excedería el límite de crédito. Límite: " + this.creditLimit);
+                }
+                this.availableBalance = newBalance;
+            }
+        }
+
+        this.updatedAt = LocalDateTime.now();
+    }
 }

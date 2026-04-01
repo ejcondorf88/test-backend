@@ -2,11 +2,13 @@ package com.example.infrastructure.config;
 
 import com.example.application.port.in.CreateCreditCardUseCase;
 import com.example.application.port.in.GetCreditCardUseCase;
+import com.example.application.port.in.UpdateBalanceUseCase;
 import com.example.application.port.in.UpdateCreditCardStatusUseCase;
 import com.example.application.port.out.LoadCreditCardPort;
 import com.example.application.port.out.SaveCreditCardPort;
 import com.example.application.service.CreateCreditCardService;
 import com.example.application.service.GetCreditCardService;
+import com.example.application.service.UpdateBalanceService;
 import com.example.application.service.UpdateCreditCardStatusService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,5 +33,12 @@ public class BeanConfiguration {
             LoadCreditCardPort loadCreditCardPort,
             SaveCreditCardPort saveCreditCardPort) {
         return new UpdateCreditCardStatusService(loadCreditCardPort, saveCreditCardPort);
+    }
+
+    @Bean
+    public UpdateBalanceUseCase updateBalanceUseCase(
+            LoadCreditCardPort loadCreditCardPort,
+            SaveCreditCardPort saveCreditCardPort) {
+        return new UpdateBalanceService(loadCreditCardPort, saveCreditCardPort);
     }
 }

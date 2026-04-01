@@ -2,10 +2,12 @@ package com.example.infrastructure.adapter.in.rest.controller;
 
 import com.example.application.port.in.CreateCreditCardUseCase;
 import com.example.application.port.in.GetCreditCardUseCase;
+import com.example.application.port.in.UpdateBalanceUseCase;
 import com.example.application.port.in.UpdateCreditCardStatusUseCase;
 import com.example.domain.model.CreditCard;
 import com.example.infrastructure.adapter.in.rest.dto.CreditCardCreateRequest;
 import com.example.infrastructure.adapter.in.rest.dto.CreditCardResponseDTO;
+import com.example.infrastructure.adapter.in.rest.dto.UpdateBalanceRequest;
 import com.example.infrastructure.adapter.in.rest.dto.UpdateCreditCardStatusRequest;
 import com.example.infrastructure.adapter.in.rest.mapper.CreditCardRestMapper;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ public class CreditCardController {
     private final GetCreditCardUseCase getCreditCardUseCase;
     private final CreateCreditCardUseCase createCreditCardUseCase;
     private final UpdateCreditCardStatusUseCase updateCreditCardStatusUseCase;
+    private final UpdateBalanceUseCase updateBalanceUseCase;
     private final CreditCardRestMapper creditCardRestMapper;
 
     @GetMapping("/{id}")
@@ -54,6 +57,18 @@ public class CreditCardController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateCreditCardStatusRequest request) {
         CreditCard updated = updateCreditCardStatusUseCase.updateStatus(id, request.status());
+        return ResponseEntity.ok(creditCardRestMapper.toResponseDTO(updated));
+    }
+
+    @PatchMapping("/{id}/balance")
+    public ResponseEntity<CreditCardResponseDTO> updateBalance(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateBalanceRequest request) {
+        CreditCard updated = updateBalanceUseCase.updateBalance(
+                id,
+                request.amount(),
+                request.operation()
+        );
         return ResponseEntity.ok(creditCardRestMapper.toResponseDTO(updated));
     }
 }
