@@ -1,0 +1,11 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: operations-service
+
+external:
+  services:
+    credit-card:
+      url: http://localhost:8080
