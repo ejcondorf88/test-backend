@@ -53,6 +53,19 @@
             <version>1.5.5.Final</version>
         </dependency>
         
+        <!-- Jackson for JSON parsing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        
+        <!-- Apache HttpClient for PATCH support -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.2.1</version>
+        </dependency>
+        
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
