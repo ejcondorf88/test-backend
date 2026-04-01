@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL compartida por ambos servicios
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: uqai-db
+    environment:
+      POSTGRES_DB: uqai_db
+      POSTGRES_USER: uqai_user
+      POSTGRES_PASSWORD: uqai_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uqai_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Credit Card Service
+  creditcard-service:
+    build:
+      context: ./creditcard-service
+      dockerfile: Dockerfile
+    container_name: creditcard-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/uqai_db
+      SPRING_DATASOURCE_USERNAME: uqai_user
+      SPRING_DATASOURCE_PASSWORD: uqai_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: creditcard
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - uqai-network
+
+  # Operations Service
+  operations-service:
+    build:
+      context: ./operations-service
+      dockerfile: Dockerfile
+    container_name: operations-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/uqai_db
+      SPRING_DATASOURCE_USERNAME: uqai_user
+      SPRING_DATASOURCE_PASSWORD: uqai_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: operations
+      SERVER_PORT: 8081
+      EXTERNAL_SERVICES_CREDIT-CARD_URL: http://creditcard-service:8080
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      creditcard-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - uqai-network
+
+volumes:
+  postgres-data:
+
+networks:
+  uqai-network:
+    driver: bridge
