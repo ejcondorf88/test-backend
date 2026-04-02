@@ -35,7 +35,7 @@ flowchart TB
         style DomainLayer fill:#f3e5f5,stroke:#9c27b0
     end
 
-    postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card entities)]
+    postgresDB[("🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card entities")]
 
     admin -->|Makes requests<br/>HTTPS/REST| restController
     cardHolder -->|Views card<br/>HTTPS/REST| restController

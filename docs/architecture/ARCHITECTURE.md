@@ -29,7 +29,7 @@ flowchart TB
     end
 
     subgraph External
-        paymentProcessor[🌐 Payment Processors<br/>External payment networks (Visa, Mastercard, etc.)]
+        paymentProcessor["🌐 Payment Processors<br/>External payment networks (Visa, Mastercard, etc.)"]
         style paymentProcessor fill:#999,stroke:#666,stroke-dasharray: 5 5
     end
 
@@ -63,19 +63,19 @@ flowchart TB
         creditcardService[📦 creditcard-service<br/>Spring Boot 3.2, Java 17<br/>Manages credit card CRUD operations, balance updates, and status changes]
         style creditcardService fill:#438dd5,stroke:#2e6295,color:#fff
 
-        operationsService[📦 operations-service<br/>Spring Boot 3.2, Java 17<br/>Processes transactions (CONSUMO/PAGO) and queries active cards]
+        operationsService["📦 operations-service<br/>Spring Boot 3.2, Java 17<br/>Processes transactions (CONSUMO/PAGO) and queries active cards"]
         style operationsService fill:#438dd5,stroke:#2e6295,color:#fff
 
-        postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data and operations)]
+        postgresDB[("🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data and operations")]
         style postgresDB fill:#438dd5,stroke:#2e6295,color:#fff
     end
 
-    paymentProcessor[🌐 Payment Processors<br/>External payment networks]
+    paymentProcessor["🌐 Payment Processors<br/>External payment networks"]
     style paymentProcessor fill:#999,stroke:#666,stroke-dasharray: 5 5
 
     cardHolder -->|Makes payments and consumption<br/>HTTPS/REST| operationsService
-    cardHolder -->|Views card details and balance<br/>HTTPS/REST<br/>GET /api/v1/creditcards/{id}| creditcardService
-    admin -->|Manages cards (CRUD, status)<br/>HTTPS/REST<br/>POST/PATCH /api/v1/creditcards| creditcardService
+    cardHolder -->|"Views card details and balance<br/>HTTPS/REST<br/>GET /api/v1/creditcards/{id}"| creditcardService
+    admin -->|"Manages cards (CRUD, status)<br/>HTTPS/REST<br/>POST/PATCH /api/v1/creditcards"| creditcardService
     admin -->|Queries active cards<br/>HTTPS/REST<br/>GET /api/v1/creditcards/active| operationsService
 
     creditcardService -->|Reads/Writes card data<br/>JDBC<br/>port 5432| postgresDB
@@ -142,7 +142,7 @@ flowchart TB
         style DomainLayer fill:#f3e5f5,stroke:#9c27b0
     end
 
-    postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card entities)]
+    postgresDB[("🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card entities")]
 
     admin -->|Makes requests<br/>HTTPS/REST| restController
     cardHolder -->|Views card<br/>HTTPS/REST| restController
@@ -223,7 +223,7 @@ flowchart TB
     creditcardService[📦 creditcard-service<br/>Spring Boot 3.2, Port 9000<br/>External service for balance updates]
     style creditcardService fill:#999,stroke:#666,stroke-dasharray: 5 5
 
-    postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data)]
+    postgresDB[("🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data")]
 
     cardHolder -->|Makes transactions<br/>HTTPS/REST<br/>POST /api/v1/operations| operationController
     admin -->|Queries active cards<br/>HTTPS/REST<br/>GET /api/v1/creditcards/active| creditCardController
@@ -232,7 +232,7 @@ flowchart TB
     creditCardController -->|Uses<br/>GetActiveCreditCardsUseCase| getActiveCardsService
 
     processOperationService -->|Calls HTTP API<br/>RestTemplate| creditCardClient
-    creditCardClient -->|Updates balance<br/>HTTP PATCH /api/v1/creditcards/{id}/balance| creditcardService
+    creditCardClient -->|"Updates balance<br/>HTTP PATCH /api/v1/creditcards/{id}/balance"| creditcardService
 
     getActiveCardsService -->|Queries<br/>CreditCardQueryRepository| queryRepo
     queryRepo -->|Implemented by<br/>Adapter Pattern| persistenceAdapter
