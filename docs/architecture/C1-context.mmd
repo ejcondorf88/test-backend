@@ -1,0 +1,15 @@
+C4Context
+    title System Context Diagram - UQAI Credit Card System
+
+    Person(cardHolder, "Card Holder", "Customer who owns credit cards and performs transactions")
+    Person(admin, "Administrator", "Bank staff who manages credit cards and monitors operations")
+    
+    System(uqaiSystem, "UQAI Credit Card System", "Manages credit cards, balances, status, and transaction processing")
+    
+    System_Ext(paymentProcessor, "Payment Processors", "External payment networks (Visa, Mastercard, etc.)")
+
+    Rel(cardHolder, uqaiSystem, "Views balance, makes payments, checks transactions", "HTTPS/REST")
+    Rel(admin, uqaiSystem, "Creates cards, updates status, views all cards", "HTTPS/REST")
+    Rel(uqaiSystem, paymentProcessor, "Processes transactions", "HTTPS/REST")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4ShapeWidth="auto")

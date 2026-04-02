@@ -1,0 +1,25 @@
+C4Container
+    title Container Diagram - UQAI Credit Card System
+
+    Person(cardHolder, "Card Holder", "Customer who owns credit cards")
+    Person(admin, "Administrator", "Bank staff")
+    
+    System_Boundary(uqaiBoundary, "UQAI Credit Card System") {
+        Container(creditcardService, "creditcard-service", "Spring Boot 3.2, Java 17", "Manages credit card CRUD operations, balance updates, and status changes", "Spring Boot")
+        Container(operationsService, "operations-service", "Spring Boot 3.2, Java 17", "Processes transactions (CONSUMO/PAGO) and queries active cards", "Spring Boot")
+        ContainerDb(postgresDB, "PostgreSQL Database", "PostgreSQL 15.x", "Stores credit card data and operations", "PostgreSQL")
+    }
+    
+    System_Ext(paymentProcessor, "Payment Processors", "External payment networks")
+
+    Rel(cardHolder, operationsService, "Makes payments and consumption", "HTTPS/REST")
+    Rel(cardHolder, creditcardService, "Views card details and balance", "HTTPS/REST", "GET /api/v1/creditcards/{id}")
+    Rel(admin, creditcardService, "Manages cards (CRUD, status)", "HTTPS/REST", "POST/PATCH /api/v1/creditcards")
+    Rel(admin, operationsService, "Queries active cards", "HTTPS/REST", "GET /api/v1/creditcards/active")
+    
+    Rel(creditcardService, postgresDB, "Reads/Writes card data", "JDBC", "port 5432")
+    Rel(operationsService, postgresDB, "Reads card data", "JDBC", "port 5432")
+    Rel(operationsService, creditcardService, "Updates balance via HTTP", "HTTP REST", "port 9000")
+    Rel(operationsService, paymentProcessor, "Sends transactions", "HTTPS/REST")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4ShapeWidth="auto")

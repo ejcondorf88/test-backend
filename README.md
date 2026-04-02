@@ -1,5 +1,14 @@
 # UQAI Monorepo - Credit Card & Operations Services
 
+Monorepo con dos microservicios Spring Boot usando Arquitectura Hexagonal.
+
+## Documentation
+
+- **[Architecture Documentation](docs/architecture/ARCHITECTURE.md)** - C4 Model diagrams and system architecture overview
+- **[API Documentation](API-DOCUMENTATION.md)** - Complete API reference with examples
+
+---
+
 Monorepo con dos microservicios Spring Boot usando Arquitectura Hexagonal:
 
 - **creditcard-service** (puerto 9000): Gestión de tarjetas de crédito

@@ -1,0 +1,51 @@
+C4Component
+    title Component Diagram - operations-service (Hexagonal Architecture)
+
+    Person(cardHolder, "Card Holder", "Customer who makes transactions")
+    Person(admin, "Administrator", "Bank staff")
+    
+    Container_Boundary(operationsContainer, "operations-service [Port 9093]") {
+        Component_Boundary(infrastructureLayer, "Infrastructure Layer") {
+            Component(operationController, "OperationController", "Spring REST Controller", "Handles POST /api/v1/operations")
+            Component(creditCardController, "CreditCardController", "Spring REST Controller", "Handles GET /api/v1/creditcards/active")
+            Component(restMapper, "CreditCardRestMapper", "MapStruct Mapper", "Maps DTOs to Domain models")
+            Component(creditCardClient, "CreditCardClient", "RestTemplate Client", "HTTP client to communicate with creditcard-service:9000")
+            Component(persistenceAdapter, "CreditCardQueryRepositoryImpl", "JPA Adapter", "Implements CreditCardQueryRepository")
+            Component(jpaRepo, "CreditCardJpaRepository", "Spring Data JPA", "JPA repository for local queries")
+            Component(persistenceMapper, "CreditCardPersistenceMapper", "MapStruct Mapper", "Maps Entity to Domain")
+            Component(globalException, "GlobalExceptionHandler", "Spring @ControllerAdvice", "Handles exceptions")
+            Component(beanConfig, "BeanConfiguration", "Spring @Configuration", "Configures beans, RestTemplate, service wiring")
+        }
+        
+        Component_Boundary(applicationLayer, "Application Layer") {
+            Component(processOperationService, "ProcessOperationService", "Spring @Service", "Implements ProcessOperationUseCase - coordinates balance updates")
+            Component(getActiveCardsService, "GetActiveCreditCardsService", "Spring @Service", "Implements GetActiveCreditCardsUseCase")
+        }
+        
+        Component_Boundary(domainLayer, "Domain Layer") {
+            Component(creditCard, "CreditCard", "Domain Entity", "Local representation of credit card data")
+            Component(cardStatus, "CreditCardStatus", "Enum", "ACTIVA, BLOQUEADA")
+            Component(operationType, "OperationType", "Enum", "CONSUMO, PAGO")
+            Component(queryRepo, "CreditCardQueryRepository", "Repository Interface", "Port for querying active cards")
+        }
+    }
+    
+    Container(creditcardService, "creditcard-service", "Spring Boot 3.2, Port 9000", "External service for balance updates")
+    ContainerDb(postgresDB, "PostgreSQL Database", "PostgreSQL 15.x", "Stores credit card data")
+
+    Rel(cardHolder, operationController, "Makes transactions", "HTTPS/REST", "POST /api/v1/operations")
+    Rel(admin, creditCardController, "Queries active cards", "HTTPS/REST", "GET /api/v1/creditcards/active")
+    
+    Rel(operationController, processOperationService, "Uses", "ProcessOperationUseCase")
+    Rel(creditCardController, getActiveCardsService, "Uses", "GetActiveCreditCardsUseCase")
+    
+    Rel(processOperationService, creditCardClient, "Calls HTTP API", "RestTemplate")
+    Rel(creditCardClient, creditcardService, "Updates balance", "HTTP PATCH /api/v1/creditcards/{id}/balance")
+    
+    Rel(getActiveCardsService, queryRepo, "Queries", "CreditCardQueryRepository")
+    Rel(queryRepo, persistenceAdapter, "Implemented by", "Adapter Pattern")
+    Rel(persistenceAdapter, jpaRepo, "Uses", "Spring Data JPA")
+    Rel(persistenceAdapter, persistenceMapper, "Maps", "MapStruct")
+    Rel(jpaRepo, postgresDB, "Reads", "JDBC")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4ShapeWidth="auto")
