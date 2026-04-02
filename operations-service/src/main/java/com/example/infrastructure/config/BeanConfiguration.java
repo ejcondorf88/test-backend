@@ -12,6 +12,7 @@ import com.example.infrastructure.adapter.out.persistence.mapper.CreditCardPersi
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,10 +34,10 @@ public class BeanConfiguration {
         return new CreditCardRestMapper();
     }
 
-    @Bean
-    public CreditCardClient creditCardClient(RestTemplate restTemplate) {
-        return new CreditCardClient(restTemplate, "http://localhost:9000");
-    }
+@Bean
+public CreditCardClient creditCardClient(RestTemplate restTemplate, @Value("${external.services.credit-card.url}") String creditCardUrl) {
+    return new CreditCardClient(restTemplate, creditCardUrl);
+}
 
     @Bean
     public CreditCardPersistenceMapper creditCardPersistenceMapper() {

@@ -39,9 +39,5 @@ USER appuser
 # Exponer el puerto de la aplicación
 EXPOSE 8080
 
-# Health check básico (cuando tengas actuator, cambiar a /actuator/health)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 
-CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/creditcards || exit 1
-
 # Entrypoint con exec para recibir señales correctamente
 ENTRYPOINT ["sh", "-c", "exec java -jar app.jar"]

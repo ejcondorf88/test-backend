@@ -14,4 +14,4 @@ spring:
 external:
   services:
     credit-card:
-      url: http://127.0.0.1:9000
+      url: ${EXTERNAL_SERVICES_CREDIT-CARD_URL:http://creditcard-service:8080}
