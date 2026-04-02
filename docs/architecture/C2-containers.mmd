@@ -1,25 +1,32 @@
-C4Container
-    title Container Diagram - UQAI Credit Card System
+flowchart TB
+    title[Container Diagram - UQAI Credit Card System]
+    style title fill:none,stroke:none,font-size:18px
 
-    Person(cardHolder, "Card Holder", "Customer who owns credit cards")
-    Person(admin, "Administrator", "Bank staff")
-    
-    System_Boundary(uqaiBoundary, "UQAI Credit Card System") {
-        Container(creditcardService, "creditcard-service", "Spring Boot 3.2, Java 17", "Manages credit card CRUD operations, balance updates, and status changes", "Spring Boot")
-        Container(operationsService, "operations-service", "Spring Boot 3.2, Java 17", "Processes transactions (CONSUMO/PAGO) and queries active cards", "Spring Boot")
-        ContainerDb(postgresDB, "PostgreSQL Database", "PostgreSQL 15.x", "Stores credit card data and operations", "PostgreSQL")
-    }
-    
-    System_Ext(paymentProcessor, "Payment Processors", "External payment networks")
+    subgraph Users
+        cardHolder[👤 Card Holder<br/>Customer who owns credit cards]
+        admin[👤 Administrator<br/>Bank staff]
+    end
 
-    Rel(cardHolder, operationsService, "Makes payments and consumption", "HTTPS/REST")
-    Rel(cardHolder, creditcardService, "Views card details and balance", "HTTPS/REST", "GET /api/v1/creditcards/{id}")
-    Rel(admin, creditcardService, "Manages cards (CRUD, status)", "HTTPS/REST", "POST/PATCH /api/v1/creditcards")
-    Rel(admin, operationsService, "Queries active cards", "HTTPS/REST", "GET /api/v1/creditcards/active")
-    
-    Rel(creditcardService, postgresDB, "Reads/Writes card data", "JDBC", "port 5432")
-    Rel(operationsService, postgresDB, "Reads card data", "JDBC", "port 5432")
-    Rel(operationsService, creditcardService, "Updates balance via HTTP", "HTTP REST", "port 9000")
-    Rel(operationsService, paymentProcessor, "Sends transactions", "HTTPS/REST")
+    subgraph "UQAI Credit Card System"
+        creditcardService[📦 creditcard-service<br/>Spring Boot 3.2, Java 17<br/>Manages credit card CRUD operations, balance updates, and status changes]
+        style creditcardService fill:#438dd5,stroke:#2e6295,color:#fff
 
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4ShapeWidth="auto")
+        operationsService[📦 operations-service<br/>Spring Boot 3.2, Java 17<br/>Processes transactions (CONSUMO/PAGO) and queries active cards]
+        style operationsService fill:#438dd5,stroke:#2e6295,color:#fff
+
+        postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data and operations)]
+        style postgresDB fill:#438dd5,stroke:#2e6295,color:#fff
+    end
+
+    paymentProcessor[🌐 Payment Processors<br/>External payment networks]
+    style paymentProcessor fill:#999,stroke:#666,stroke-dasharray: 5 5
+
+    cardHolder -->|Makes payments and consumption<br/>HTTPS/REST| operationsService
+    cardHolder -->|Views card details and balance<br/>HTTPS/REST<br/>GET /api/v1/creditcards/{id}| creditcardService
+    admin -->|Manages cards (CRUD, status)<br/>HTTPS/REST<br/>POST/PATCH /api/v1/creditcards| creditcardService
+    admin -->|Queries active cards<br/>HTTPS/REST<br/>GET /api/v1/creditcards/active| operationsService
+
+    creditcardService -->|Reads/Writes card data<br/>JDBC<br/>port 5432| postgresDB
+    operationsService -->|Reads card data<br/>JDBC<br/>port 5432| postgresDB
+    operationsService -->|Updates balance via HTTP<br/>HTTP REST<br/>port 9000| creditcardService
+    operationsService -->|Sends transactions<br/>HTTPS/REST| paymentProcessor

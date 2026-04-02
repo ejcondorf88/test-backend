@@ -17,21 +17,25 @@ The C4 Model provides a way to describe software architecture through four level
 The System Context diagram shows the UQAI Credit Card System as a black box and its relationships with external actors and systems.
 
 ```mermaid
-C4Context
-    title System Context Diagram - UQAI Credit Card System
+flowchart TB
+    subgraph Actors
+        cardHolder[👤 Card Holder<br/>Customer who owns credit cards and performs transactions]
+        admin[👤 Administrator<br/>Bank staff who manages credit cards and monitors operations]
+    end
 
-    Person(cardHolder, "Card Holder", "Customer who owns credit cards and performs transactions")
-    Person(admin, "Administrator", "Bank staff who manages credit cards and monitors operations")
-    
-    System(uqaiSystem, "UQAI Credit Card System", "Manages credit cards, balances, status, and transaction processing")
-    
-    System_Ext(paymentProcessor, "Payment Processors", "External payment networks (Visa, Mastercard, etc.)")
+    subgraph Systems
+        uqaiSystem[🏦 UQAI Credit Card System<br/>Manages credit cards, balances, status, and transaction processing]
+        style uqaiSystem fill:#1168bd,stroke:#0b4884,color:#fff
+    end
 
-    Rel(cardHolder, uqaiSystem, "Views balance, makes payments, checks transactions", "HTTPS/REST")
-    Rel(admin, uqaiSystem, "Creates cards, updates status, views all cards", "HTTPS/REST")
-    Rel(uqaiSystem, paymentProcessor, "Processes transactions", "HTTPS/REST")
+    subgraph External
+        paymentProcessor[🌐 Payment Processors<br/>External payment networks (Visa, Mastercard, etc.)]
+        style paymentProcessor fill:#999,stroke:#666,stroke-dasharray: 5 5
+    end
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4ShapeWidth="auto")
+    cardHolder -->|Views balance, makes payments, checks transactions<br/>HTTPS/REST| uqaiSystem
+    admin -->|Creates cards, updates status, views all cards<br/>HTTPS/REST| uqaiSystem
+    uqaiSystem -->|Processes transactions<br/>HTTPS/REST| paymentProcessor
 ```
 
 ### Key Actors
@@ -49,31 +53,35 @@ C4Context
 The Container diagram shows the high-level technology stack and how the system is structured into deployable units (containers).
 
 ```mermaid
-C4Container
-    title Container Diagram - UQAI Credit Card System
+flowchart TB
+    subgraph Users
+        cardHolder[👤 Card Holder<br/>Customer who owns credit cards]
+        admin[👤 Administrator<br/>Bank staff]
+    end
 
-    Person(cardHolder, "Card Holder", "Customer who owns credit cards")
-    Person(admin, "Administrator", "Bank staff")
-    
-    System_Boundary(uqaiBoundary, "UQAI Credit Card System") {
-        Container(creditcardService, "creditcard-service", "Spring Boot 3.2, Java 17", "Manages credit card CRUD operations, balance updates, and status changes", "Spring Boot")
-        Container(operationsService, "operations-service", "Spring Boot 3.2, Java 17", "Processes transactions (CONSUMO/PAGO) and queries active cards", "Spring Boot")
-        ContainerDb(postgresDB, "PostgreSQL Database", "PostgreSQL 15.x", "Stores credit card data and operations", "PostgreSQL")
-    }
-    
-    System_Ext(paymentProcessor, "Payment Processors", "External payment networks")
+    subgraph "UQAI Credit Card System"
+        creditcardService[📦 creditcard-service<br/>Spring Boot 3.2, Java 17<br/>Manages credit card CRUD operations, balance updates, and status changes]
+        style creditcardService fill:#438dd5,stroke:#2e6295,color:#fff
 
-    Rel(cardHolder, operationsService, "Makes payments and consumption", "HTTPS/REST")
-    Rel(cardHolder, creditcardService, "Views card details and balance", "HTTPS/REST", "GET /api/v1/creditcards/{id}")
-    Rel(admin, creditcardService, "Manages cards (CRUD, status)", "HTTPS/REST", "POST/PATCH /api/v1/creditcards")
-    Rel(admin, operationsService, "Queries active cards", "HTTPS/REST", "GET /api/v1/creditcards/active")
-    
-    Rel(creditcardService, postgresDB, "Reads/Writes card data", "JDBC", "port 5432")
-    Rel(operationsService, postgresDB, "Reads card data", "JDBC", "port 5432")
-    Rel(operationsService, creditcardService, "Updates balance via HTTP", "HTTP REST", "port 9000")
-    Rel(operationsService, paymentProcessor, "Sends transactions", "HTTPS/REST")
+        operationsService[📦 operations-service<br/>Spring Boot 3.2, Java 17<br/>Processes transactions (CONSUMO/PAGO) and queries active cards]
+        style operationsService fill:#438dd5,stroke:#2e6295,color:#fff
 
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4ShapeWidth="auto")
+        postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data and operations)]
+        style postgresDB fill:#438dd5,stroke:#2e6295,color:#fff
+    end
+
+    paymentProcessor[🌐 Payment Processors<br/>External payment networks]
+    style paymentProcessor fill:#999,stroke:#666,stroke-dasharray: 5 5
+
+    cardHolder -->|Makes payments and consumption<br/>HTTPS/REST| operationsService
+    cardHolder -->|Views card details and balance<br/>HTTPS/REST<br/>GET /api/v1/creditcards/{id}| creditcardService
+    admin -->|Manages cards (CRUD, status)<br/>HTTPS/REST<br/>POST/PATCH /api/v1/creditcards| creditcardService
+    admin -->|Queries active cards<br/>HTTPS/REST<br/>GET /api/v1/creditcards/active| operationsService
+
+    creditcardService -->|Reads/Writes card data<br/>JDBC<br/>port 5432| postgresDB
+    operationsService -->|Reads card data<br/>JDBC<br/>port 5432| postgresDB
+    operationsService -->|Updates balance via HTTP<br/>HTTP REST<br/>port 9000| creditcardService
+    operationsService -->|Sends transactions<br/>HTTPS/REST| paymentProcessor
 ```
 
 ### Technology Stack
@@ -100,59 +108,60 @@ The Component diagrams show the internal structure of each service, following He
 ### creditcard-service Components
 
 ```mermaid
-C4Component
-    title Component Diagram - creditcard-service (Hexagonal Architecture)
+flowchart TB
+    subgraph Users
+        admin[👤 Administrator<br/>Bank staff]
+        cardHolder[👤 Card Holder<br/>Customer]
+    end
 
-    Person(admin, "Administrator", "Bank staff")
-    Person(cardHolder, "Card Holder", "Customer")
-    
-    Container_Boundary(creditcardContainer, "creditcard-service [Port 9000]") {
-        Component_Boundary(infrastructureLayer, "Infrastructure Layer") {
-            Component(restController, "CreditCardController", "Spring REST Controller", "Handles HTTP requests: GET, POST, PATCH /api/v1/creditcards")
-            Component(restMapper, "CreditCardRestMapper", "MapStruct Mapper", "Maps between DTOs and Domain models")
-            Component(persistenceAdapter, "CreditCardPersistenceAdapter", "JPA Adapter", "Implements LoadCreditCardPort and SaveCreditCardPort")
-            Component(jpaRepo, "CreditCardJpaRepository", "Spring Data JPA", "JPA repository interface for database access")
-            Component(persistenceMapper, "CreditCardPersistenceMapper", "MapStruct Mapper", "Maps between Entity and Domain models")
-            Component(globalException, "GlobalExceptionHandler", "Spring @ControllerAdvice", "Handles domain exceptions and returns HTTP errors")
-        }
-        
-        Component_Boundary(applicationLayer, "Application Layer") {
-            Component(createService, "CreateCreditCardService", "Spring @Service", "Implements CreateCreditCardUseCase")
-            Component(getService, "GetCreditCardService", "Spring @Service", "Implements GetCreditCardUseCase")
-            Component(updateStatusService, "UpdateCreditCardStatusService", "Spring @Service", "Implements UpdateCreditCardStatusUseCase")
-            Component(updateBalanceService, "UpdateBalanceService", "Spring @Service", "Implements UpdateBalanceUseCase")
-        }
-        
-        Component_Boundary(domainLayer, "Domain Layer") {
-            Component(creditCard, "CreditCard", "Domain Entity", "Core business entity with cardNumber, balance, status, limits")
-            Component(cardStatus, "CreditCardStatus", "Enum", "ACTIVA, BLOQUEADA")
-            Component(operationType, "OperationType", "Enum", "CONSUMO, PAGO")
-            Component(cardRepo, "CreditCardRepository", "Repository Interface", "Port for persistence operations")
-        }
-    }
-    
-    ContainerDb(postgresDB, "PostgreSQL Database", "PostgreSQL 15.x", "Stores credit card entities")
+    subgraph "creditcard-service [Port 9000]"
+        subgraph InfrastructureLayer["🔧 Infrastructure Layer"]
+            restController[CreditCardController<br/>Spring REST Controller<br/>Handles HTTP requests: GET, POST, PATCH /api/v1/creditcards]
+            restMapper[CreditCardRestMapper<br/>MapStruct Mapper<br/>Maps between DTOs and Domain models]
+            persistenceAdapter[CreditCardPersistenceAdapter<br/>JPA Adapter<br/>Implements LoadCreditCardPort and SaveCreditCardPort]
+            jpaRepo[CreditCardJpaRepository<br/>Spring Data JPA<br/>JPA repository interface for database access]
+            persistenceMapper[CreditCardPersistenceMapper<br/>MapStruct Mapper<br/>Maps between Entity and Domain models]
+            globalException[GlobalExceptionHandler<br/>Spring @ControllerAdvice<br/>Handles domain exceptions and returns HTTP errors]
+        end
+        style InfrastructureLayer fill:#e3f2fd,stroke:#2196f3
 
-    Rel(admin, restController, "Makes requests", "HTTPS/REST")
-    Rel(cardHolder, restController, "Views card", "HTTPS/REST")
-    
-    Rel(restController, createService, "Uses", "CreateCreditCardUseCase")
-    Rel(restController, getService, "Uses", "GetCreditCardUseCase")
-    Rel(restController, updateStatusService, "Uses", "UpdateCreditCardStatusUseCase")
-    Rel(restController, updateBalanceService, "Uses", "UpdateBalanceUseCase")
-    Rel(restController, restMapper, "Maps DTOs", "MapStruct")
-    
-    Rel(createService, cardRepo, "Persists", "SaveCreditCardPort")
-    Rel(getService, cardRepo, "Queries", "LoadCreditCardPort")
-    Rel(updateStatusService, cardRepo, "Updates", "SaveCreditCardPort")
-    Rel(updateBalanceService, cardRepo, "Updates", "SaveCreditCardPort")
-    
-    Rel(cardRepo, persistenceAdapter, "Implemented by", "Adapter Pattern")
-    Rel(persistenceAdapter, jpaRepo, "Uses", "Spring Data JPA")
-    Rel(persistenceAdapter, persistenceMapper, "Maps entities", "MapStruct")
-    Rel(jpaRepo, postgresDB, "Persists", "JDBC")
+        subgraph ApplicationLayer["⚙️ Application Layer"]
+            createService[CreateCreditCardService<br/>Spring @Service<br/>Implements CreateCreditCardUseCase]
+            getService[GetCreditCardService<br/>Spring @Service<br/>Implements GetCreditCardUseCase]
+            updateStatusService[UpdateCreditCardStatusService<br/>Spring @Service<br/>Implements UpdateCreditCardStatusUseCase]
+            updateBalanceService[UpdateBalanceService<br/>Spring @Service<br/>Implements UpdateBalanceUseCase]
+        end
+        style ApplicationLayer fill:#fff3e0,stroke:#ff9800
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4ShapeWidth="auto")
+        subgraph DomainLayer["💎 Domain Layer"]
+            creditCard[CreditCard<br/>Domain Entity<br/>Core business entity with cardNumber, balance, status, limits]
+            cardStatus[CreditCardStatus<br/>Enum<br/>ACTIVA, BLOQUEADA]
+            operationType[OperationType<br/>Enum<br/>CONSUMO, PAGO]
+            cardRepo[CreditCardRepository<br/>Repository Interface<br/>Port for persistence operations]
+        end
+        style DomainLayer fill:#f3e5f5,stroke:#9c27b0
+    end
+
+    postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card entities)]
+
+    admin -->|Makes requests<br/>HTTPS/REST| restController
+    cardHolder -->|Views card<br/>HTTPS/REST| restController
+
+    restController -->|Uses<br/>CreateCreditCardUseCase| createService
+    restController -->|Uses<br/>GetCreditCardUseCase| getService
+    restController -->|Uses<br/>UpdateCreditCardStatusUseCase| updateStatusService
+    restController -->|Uses<br/>UpdateBalanceUseCase| updateBalanceService
+    restController -->|Maps DTOs<br/>MapStruct| restMapper
+
+    createService -->|Persists<br/>SaveCreditCardPort| cardRepo
+    getService -->|Queries<br/>LoadCreditCardPort| cardRepo
+    updateStatusService -->|Updates<br/>SaveCreditCardPort| cardRepo
+    updateBalanceService -->|Updates<br/>SaveCreditCardPort| cardRepo
+
+    cardRepo -->|Implemented by<br/>Adapter Pattern| persistenceAdapter
+    persistenceAdapter -->|Uses<br/>Spring Data JPA| jpaRepo
+    persistenceAdapter -->|Maps entities<br/>MapStruct| persistenceMapper
+    jpaRepo -->|Persists<br/>JDBC| postgresDB
 ```
 
 #### Architecture Layers
@@ -176,57 +185,60 @@ C4Component
 ### operations-service Components
 
 ```mermaid
-C4Component
-    title Component Diagram - operations-service (Hexagonal Architecture)
+flowchart TB
+    subgraph Users
+        cardHolder[👤 Card Holder<br/>Customer who makes transactions]
+        admin[👤 Administrator<br/>Bank staff]
+    end
 
-    Person(cardHolder, "Card Holder", "Customer who makes transactions")
-    Person(admin, "Administrator", "Bank staff")
-    
-    Container_Boundary(operationsContainer, "operations-service [Port 9093]") {
-        Component_Boundary(infrastructureLayer, "Infrastructure Layer") {
-            Component(operationController, "OperationController", "Spring REST Controller", "Handles POST /api/v1/operations")
-            Component(creditCardController, "CreditCardController", "Spring REST Controller", "Handles GET /api/v1/creditcards/active")
-            Component(restMapper, "CreditCardRestMapper", "MapStruct Mapper", "Maps DTOs to Domain models")
-            Component(creditCardClient, "CreditCardClient", "RestTemplate Client", "HTTP client to communicate with creditcard-service:9000")
-            Component(persistenceAdapter, "CreditCardQueryRepositoryImpl", "JPA Adapter", "Implements CreditCardQueryRepository")
-            Component(jpaRepo, "CreditCardJpaRepository", "Spring Data JPA", "JPA repository for local queries")
-            Component(persistenceMapper, "CreditCardPersistenceMapper", "MapStruct Mapper", "Maps Entity to Domain")
-            Component(globalException, "GlobalExceptionHandler", "Spring @ControllerAdvice", "Handles exceptions")
-            Component(beanConfig, "BeanConfiguration", "Spring @Configuration", "Configures beans, RestTemplate, service wiring")
-        }
-        
-        Component_Boundary(applicationLayer, "Application Layer") {
-            Component(processOperationService, "ProcessOperationService", "Spring @Service", "Implements ProcessOperationUseCase - coordinates balance updates")
-            Component(getActiveCardsService, "GetActiveCreditCardsService", "Spring @Service", "Implements GetActiveCreditCardsUseCase")
-        }
-        
-        Component_Boundary(domainLayer, "Domain Layer") {
-            Component(creditCard, "CreditCard", "Domain Entity", "Local representation of credit card data")
-            Component(cardStatus, "CreditCardStatus", "Enum", "ACTIVA, BLOQUEADA")
-            Component(operationType, "OperationType", "Enum", "CONSUMO, PAGO")
-            Component(queryRepo, "CreditCardQueryRepository", "Repository Interface", "Port for querying active cards")
-        }
-    }
-    
-    Container(creditcardService, "creditcard-service", "Spring Boot 3.2, Port 9000", "External service for balance updates")
-    ContainerDb(postgresDB, "PostgreSQL Database", "PostgreSQL 15.x", "Stores credit card data")
+    subgraph "operations-service [Port 9093]"
+        subgraph InfrastructureLayer["🔧 Infrastructure Layer"]
+            operationController[OperationController<br/>Spring REST Controller<br/>Handles POST /api/v1/operations]
+            creditCardController[CreditCardController<br/>Spring REST Controller<br/>Handles GET /api/v1/creditcards/active]
+            restMapper[CreditCardRestMapper<br/>MapStruct Mapper<br/>Maps DTOs to Domain models]
+            creditCardClient[CreditCardClient<br/>RestTemplate Client<br/>HTTP client to communicate with creditcard-service:9000]
+            persistenceAdapter[CreditCardQueryRepositoryImpl<br/>JPA Adapter<br/>Implements CreditCardQueryRepository]
+            jpaRepo[CreditCardJpaRepository<br/>Spring Data JPA<br/>JPA repository for local queries]
+            persistenceMapper[CreditCardPersistenceMapper<br/>MapStruct Mapper<br/>Maps Entity to Domain]
+            globalException[GlobalExceptionHandler<br/>Spring @ControllerAdvice<br/>Handles exceptions]
+            beanConfig[BeanConfiguration<br/>Spring @Configuration<br/>Configures beans, RestTemplate, service wiring]
+        end
+        style InfrastructureLayer fill:#e3f2fd,stroke:#2196f3
 
-    Rel(cardHolder, operationController, "Makes transactions", "HTTPS/REST", "POST /api/v1/operations")
-    Rel(admin, creditCardController, "Queries active cards", "HTTPS/REST", "GET /api/v1/creditcards/active")
-    
-    Rel(operationController, processOperationService, "Uses", "ProcessOperationUseCase")
-    Rel(creditCardController, getActiveCardsService, "Uses", "GetActiveCreditCardsUseCase")
-    
-    Rel(processOperationService, creditCardClient, "Calls HTTP API", "RestTemplate")
-    Rel(creditCardClient, creditcardService, "Updates balance", "HTTP PATCH /api/v1/creditcards/{id}/balance")
-    
-    Rel(getActiveCardsService, queryRepo, "Queries", "CreditCardQueryRepository")
-    Rel(queryRepo, persistenceAdapter, "Implemented by", "Adapter Pattern")
-    Rel(persistenceAdapter, jpaRepo, "Uses", "Spring Data JPA")
-    Rel(persistenceAdapter, persistenceMapper, "Maps", "MapStruct")
-    Rel(jpaRepo, postgresDB, "Reads", "JDBC")
+        subgraph ApplicationLayer["⚙️ Application Layer"]
+            processOperationService[ProcessOperationService<br/>Spring @Service<br/>Implements ProcessOperationUseCase - coordinates balance updates]
+            getActiveCardsService[GetActiveCreditCardsService<br/>Spring @Service<br/>Implements GetActiveCreditCardsUseCase]
+        end
+        style ApplicationLayer fill:#fff3e0,stroke:#ff9800
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4ShapeWidth="auto")
+        subgraph DomainLayer["💎 Domain Layer"]
+            creditCard[CreditCard<br/>Domain Entity<br/>Local representation of credit card data]
+            cardStatus[CreditCardStatus<br/>Enum<br/>ACTIVA, BLOQUEADA]
+            operationType[OperationType<br/>Enum<br/>CONSUMO, PAGO]
+            queryRepo[CreditCardQueryRepository<br/>Repository Interface<br/>Port for querying active cards]
+        end
+        style DomainLayer fill:#f3e5f5,stroke:#9c27b0
+    end
+
+    creditcardService[📦 creditcard-service<br/>Spring Boot 3.2, Port 9000<br/>External service for balance updates]
+    style creditcardService fill:#999,stroke:#666,stroke-dasharray: 5 5
+
+    postgresDB[(🗄️ PostgreSQL Database<br/>PostgreSQL 15.x<br/>Stores credit card data)]
+
+    cardHolder -->|Makes transactions<br/>HTTPS/REST<br/>POST /api/v1/operations| operationController
+    admin -->|Queries active cards<br/>HTTPS/REST<br/>GET /api/v1/creditcards/active| creditCardController
+
+    operationController -->|Uses<br/>ProcessOperationUseCase| processOperationService
+    creditCardController -->|Uses<br/>GetActiveCreditCardsUseCase| getActiveCardsService
+
+    processOperationService -->|Calls HTTP API<br/>RestTemplate| creditCardClient
+    creditCardClient -->|Updates balance<br/>HTTP PATCH /api/v1/creditcards/{id}/balance| creditcardService
+
+    getActiveCardsService -->|Queries<br/>CreditCardQueryRepository| queryRepo
+    queryRepo -->|Implemented by<br/>Adapter Pattern| persistenceAdapter
+    persistenceAdapter -->|Uses<br/>Spring Data JPA| jpaRepo
+    persistenceAdapter -->|Maps<br/>MapStruct| persistenceMapper
+    jpaRepo -->|Reads<br/>JDBC| postgresDB
 ```
 
 #### Key Components
